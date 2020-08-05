@@ -1,6 +1,6 @@
 public class Main {
     public static void main(String[] args) {
-        StartOne frame = new StartOne();
+        BattleshipSystem frame = new BattleshipSystem(5, 5);
         frame.setVisible(true); //make the frame visible
     }
 }

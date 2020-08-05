@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 
 public class Battleship extends JFrame {
 
+    //under investigation
     public Battleship(int maxX, int maxY){
         BattleshipSystem battleshipSystem = new BattleshipSystem(maxX, maxY);
 

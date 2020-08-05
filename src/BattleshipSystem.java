@@ -11,25 +11,25 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class BattleshipSystem extends JFrame{
-    private JPanel contentPane;
+    private final JPanel contentPane;
 
     private static int count = 0; //this determines if the player is setting the initial coordinate or playing a battle.
     private JPanel sidePanel;
-    private JTextField textField;
+    private final JTextField textField;
     private static boolean isPlayer = true; // Used to manage input turns for Player/Opponent
 
-    private int maxX; //number of cells can change flexibly if interval changes
-    private int maxY;
-    private int startX;
-    private int intervalX;
-    private int intervalY;
+    private final int maxX; //number of cells can change flexibly if interval changes
+    private final int maxY;
+    private final int startX;
+    private final int intervalX;
+    private final int intervalY;
 
     private final JButton[][] grid;
     private final JTextArea txtrTxtbox;
     private final Cell playerShip;
     private final Cell opponentShip;
 
-    public final List<Move> playerMoves = new LinkedList<Move>() {// player moves and its result
+    public final List<Move> playerMoves = new LinkedList<>() {// player moves and its result
         @Override
         public boolean add(Move m) {// this is possible because txtrTxtbox is final and is on the parent scope
             final JTextArea txtrTxtbox = new JTextArea();
@@ -56,7 +56,7 @@ public class BattleshipSystem extends JFrame{
         intervalX = 46;
         intervalY = 41;
 
-        this.grid = new JButton[5][5]; // coordinate at each JButton object
+        this.grid = new JButton[maxX][maxY]; // coordinate at each JButton object
         this.txtrTxtbox = new JTextArea();
         getContentPane().setLayout(null);
         this.playerShip = new Cell(-1, -1);
@@ -88,61 +88,62 @@ public class BattleshipSystem extends JFrame{
         JButton btnNewButton = new JButton("Go");
         btnNewButton.addActionListener(e -> { //once user puts an input and presses "Go", it performs
             String str = textField.getText(); //convert into a string
+            int c1; int c2;
             try{
-                Character.getNumericValue(str.charAt(0));
-                Character.getNumericValue(str.charAt(2)); //AWT-EventQueue-0 would return if there is no input
+                c1 = Character.getNumericValue(str.charAt(0));
+                c2 = Character.getNumericValue(str.charAt(2)); //AWT-EventQueue-0 would return if there is no input
+
+                if(c1 >= 0 && c1 <= 4 && c2 >= 0 && c2 <= 4){ //verify that the user input is an integer in the range
+                    count++; //odd: Player chooses the initial coordinate, even: Opponent does so
+                    if(count == 1){  //chooses the initial coordinate of the player
+                        //playerShip is shared as final on parent
+                        //calls the object to set the initial coordinate
+                        playerShip.x = c1;
+                        playerShip.y = c2;
+                        txtrTxtbox.append("Player's coordinate is at (*,*)\nOpponent, please insert the next line\n");
+                    }else if(count == 2){ //chooses the initial coordinate of the opponent
+                        //opponentShip is shared as final on parent
+                        opponentShip.x = c1;
+                        opponentShip.y = c2;
+                        txtrTxtbox.append("Opponent's coordinate is at (*,*)" + "\n");
+                        txtrTxtbox.append("Player: Please insert your next line" + "\n");
+                    }
+                    else{
+                        List<Move> currentMoves = isPlayer ? playerMoves : opponentMoves;
+                        //deciding which player's move to store
+                        Cell currentEnemyShip = isPlayer ? opponentShip : playerShip;
+                        if (c1 == currentEnemyShip.x && c2 == currentEnemyShip.y) { //hit
+                            currentMoves.add(new Move(c1, c2, true));
+                            txtrTxtbox.setText("Congrats "+(isPlayer ? "Player" : "Opponent" )+ ", you won!" + "\n");
+                        }else { //miss
+                            currentMoves.add(new Move(c1, c2, false)); //add the coordinate to the linked list to store missed hits
+                            if(c1==currentEnemyShip.x-1||c1==currentEnemyShip.x+1||c2==currentEnemyShip.y-1||c2==currentEnemyShip.y+1){
+                                txtrTxtbox.append("What a shame! That was close!! \n" );
+                            }
+                            txtrTxtbox.append((isPlayer ? "Opponent: " : "Player: " ) + "Please insert your next line" + "\n");
+                        }
+                    }
+                    textField.setText(""); // Clears textField
+                    for(int i = 0; i < 5; i++){
+                        for(int j = 0; j < 5; j++){
+                            grid[i][j].setText(""); //clear out all text
+                        }
+                    }
+                    isPlayer = !isPlayer; // Flip isPlayer
+                    int lv = isPlayer ? playerMoves.size() : opponentMoves.size(); //size of the linked list
+                    for(int i = 0; i < lv; i++){
+                        if(isPlayer){
+                            grid[playerMoves.get(i).x][playerMoves.get(i).y].setText("X");
+                        }else{
+                            grid[opponentMoves.get(i).x][opponentMoves.get(i).y].setText("X");
+                        } //each player's mistaken grids are set as "X" from the linked list
+                    }
+
+                }
             }catch(Exception ex){
                 txtrTxtbox.append("No input observed\n");
             }
-            int c1 = Character.getNumericValue(str.charAt(0));
-            int c2 = Character.getNumericValue(str.charAt(2));//interprets the first and second characters of user input
-            if(c1 >= 0 && c1 <= 4 && c2 >= 0 && c2 <= 4){ //verify that the user input is an integer in the range
-                count++; //odd: Player chooses the initial coordinate, even: Opponent does so
-                if(count == 1){  //chooses the initial coordinate of the player
-                    //playerShip is shared as final on parent
-                    //calls the object to set the initial coordinate
-                    playerShip.x = c1;
-                    playerShip.y = c2;
-                    txtrTxtbox.append("Player's coordinate is at (*,*)\nOpponent, please insert the next line\n");
-                }else if(count == 2){ //chooses the initial coordinate of the opponent
-                    //opponentShip is shared as final on parent
-                    opponentShip.x = c1;
-                    opponentShip.y = c2;
-                    txtrTxtbox.append("Opponent's coordinate is at (*,*)" + "\n");
-                    txtrTxtbox.append("Player: Please insert your next line" + "\n");
-                }
-                else{
-                    List<Move> currentMoves = isPlayer ? playerMoves : opponentMoves;
-                    //deciding which player's move to store
-                    Cell currentEnemyShip = isPlayer ? opponentShip : playerShip;
-                    if (c1 == currentEnemyShip.x && c2 == currentEnemyShip.y) { //hit
-                        currentMoves.add(new Move(c1, c2, true));
-                        txtrTxtbox.setText("Congrats "+(isPlayer ? "Player" : "Opponent" )+ ", you won!" + "\n");
-                    }else { //miss
-                        currentMoves.add(new Move(c1, c2, false)); //add the coordinate to the linked list to store missed hits
-                        if(c1==currentEnemyShip.x-1||c1==currentEnemyShip.x+1||c2==currentEnemyShip.y-1||c2==currentEnemyShip.y+1){
-                            txtrTxtbox.append("What a shame! That was close!! \n" );
-                        }
-                        txtrTxtbox.append((isPlayer ? "Opponent: " : "Player: " ) + "Please insert your next line" + "\n");
-                    }
-                }
-                textField.setText(""); // Clears textField
-                for(int i = 0; i < 5; i++){
-                    for(int j = 0; j < 5; j++){
-                        grid[i][j].setText(""); //clear out all text
-                    }
-                }
-                isPlayer = !isPlayer; // Flip isPlayer
-                int lv = isPlayer ? playerMoves.size() : opponentMoves.size(); //size of the linked list
-                for(int i = 0; i < lv; i++){
-                    if(isPlayer){
-                        grid[playerMoves.get(i).x][playerMoves.get(i).y].setText("X");
-                    }else{
-                        grid[opponentMoves.get(i).x][opponentMoves.get(i).y].setText("X");
-                    } //each player's mistaken grids are set as "X" from the linked list
-                }
 
-            }
         });
         btnNewButton.setBounds(153, 297, 71, 29);
         contentPane.add(btnNewButton);

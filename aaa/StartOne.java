@@ -15,37 +15,12 @@ import javax.swing.border.EmptyBorder;
 public class StartOne extends JFrame {
 
     private JPanel contentPane;
-    
-    public static void main(String[] args) {
-
-        StartOne frame = new StartOne();
-        frame.setVisible(true); //make the frame visible
-    }
 
     private static int count = 0; //this determines if the player is setting the initial coordinate or playing a battle.
     private JPanel sidePanel;
     private JTextField textField;
     private static boolean isPlayer = true; // Used to manage input turns for Player/Opponent
-    public int lv;
-    
-    
-    public class Cell { //nested class. It is used to store certain types of coordinate by encapsulation
-        public int x;
-        public int y;
-        public Cell(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-    
-    public class Move extends Cell {
-        public boolean isHit; // set to true if this move hits other player ship
-        public Move(int x, int y, boolean isHit) {
-            super(x, y); //super() to use the constructor from the parent 
-            this.isHit = isHit;
-        }
-    }
-    
+
     public StartOne() {
         
         final JButton[][] grid = new JButton[5][5]; // coordinate at each JButton object
